@@ -40,10 +40,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y avahi-daemon avahi-uti
   && apt-get -qq -y clean
 COPY avahi-daemon.conf /etc/avahi/avahi-daemon.conf
 
-# Create user for OLAD since it won't run as root
-RUN adduser --disabled-password --gecos '' --no-create-home --shell /bin/bash olad
-#USER olad 
-
 # Setup services
 RUN mkdir /etc/service/00dbus
 ADD dbus-daemon.sh /etc/service/00dbus/run
@@ -52,6 +48,10 @@ RUN chmod +x /etc/service/00dbus/run
 RUN mkdir /etc/service/01avahi-daemon
 ADD avahi-daemon.sh /etc/service/01avahi-daemon/run
 RUN chmod +x /etc/service/01avahi-daemon/run
+
+RUN mkdir /etc/service/02olad-daemon
+ADD olad-daemon.sh /etc/service/02olad-daemon/run
+RUN chmod +x /etc/service/02olad-daemon/run
 
 # Clean up APT when done.
 #RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
