@@ -24,12 +24,34 @@ libprotoc-dev zlib1g-dev bison flex make libftdi-dev  libftdi1 libusb-1.0-0-dev 
 WORKDIR /tmp
 RUN git clone https://github.com/OpenLightingProject/ola.git ola-dev
 WORKDIR /tmp/ola-dev
-RUN ldconfig
 RUN autoreconf -i
-RUN ./configure --disable-all-plugins --enable-artnet --enable-dmx4linux --enable-dummy --disable-libftdi --disable-libusb --disable-uart --disable-osc 
+RUN ./configure --disable-all-plugins --enable-artnet --enable-dmx4linux --enable-dummy --disable-libftdi --disable-libusb --disable-uart --disable-osc --disable-root-check
 RUN make
+RUN make install
+RUN ldconfig
 
-# ...put your own build instructions here...
+# Install avahi pieces required
+RUN mkdir -p /var/run/dbus
+VOLUME /var/run/dbus
+RUN apt-get update -y
+RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y avahi-daemon avahi-utils \
+  && apt-get -qq -y autoclean \
+  && apt-get -qq -y autoremove \
+  && apt-get -qq -y clean
+COPY avahi-daemon.conf /etc/avahi/avahi-daemon.conf
+
+# Create user for OLAD since it won't run as root
+RUN adduser --disabled-password --gecos '' --no-create-home --shell /bin/bash olad
+#USER olad 
+
+# Setup services
+RUN mkdir /etc/service/00dbus
+ADD dbus-daemon.sh /etc/service/00dbus/run
+RUN chmod +x /etc/service/00dbus/run
+
+RUN mkdir /etc/service/01avahi-daemon
+ADD avahi-daemon.sh /etc/service/01avahi-daemon/run
+RUN chmod +x /etc/service/01avahi-daemon/run
 
 # Clean up APT when done.
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+#RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
