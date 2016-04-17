@@ -11,4 +11,4 @@ Interactive running command
 docker run  --net=host --rm -t -i ola /sbin/my_init -- bash -l
 
 Background running command
-docker run  --net=host --rm -t -d ola
+docker run  --net=host -p 9090 -t -d docker-ola
