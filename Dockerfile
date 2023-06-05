@@ -1,8 +1,4 @@
-# Use phusion/baseimage as base image. To make your builds reproducible, make
-# sure you lock down to a specific version, not to `latest`!
-# See https://github.com/phusion/baseimage-docker/blob/master/Changelog.md for
-# a list of version numbers.
-FROM phusion/baseimage:latest
+FROM debian:latest
 
 # Use baseimage-docker's init system.
 CMD ["/sbin/my_init"]
@@ -13,20 +9,22 @@ RUN apt-get -y dist-upgrade
 RUN apt-get install -y wget curl supervisor
 
 # Install OLA dependencies
-RUN apt-get install -y git-core 
+RUN apt-get install -y git-core
 RUN apt-get install -y build-essential
 
 # Download ola development files
 RUN apt-get update
-RUN apt-get install -y libcppunit-dev libcppunit-1.13-0 uuid-dev pkg-config libncurses5-dev libtool autoconf \
-automake  g++ libmicrohttpd-dev  libmicrohttpd10 protobuf-compiler libprotobuf-lite8 python-protobuf libprotobuf-dev \
-libprotoc-dev zlib1g-dev bison flex make libftdi-dev  libftdi1 libusb-1.0-0-dev liblo-dev libavahi-client-dev doxygen
+RUN apt-get install -y libcppunit-dev libcppunit-1.15-0 uuid-dev pkg-config libncurses5-dev libtool autoconf \
+automake  g++ libmicrohttpd-dev  libmicrohttpd12 protobuf-compiler libprotobuf-lite23 libprotobuf-dev \
+libprotoc-dev zlib1g-dev bison flex make libftdi-dev  libftdi1 libusb-1.0-0-dev liblo-dev \
+libavahi-client-dev doxygen graphviz flake8 python3-protobuf
 
 WORKDIR /tmp
 RUN git clone https://github.com/OpenLightingProject/ola.git ola-dev
 WORKDIR /tmp/ola-dev
 RUN autoreconf -i
-RUN ./configure --disable-all-plugins --enable-e131 --enable-espnet --enable-artnet --enable-dummy --disable-libftdi --disable-libusb --disable-uart --disable-osc --disable-root-check
+
+RUN ./configure --disable-all-plugins --enable-nanoleaf --enable-openpixelcontrol --enable-opendmx --enable-e131 --enable-espnet --enable-artnet --enable-dummy --enable-libftdi --enable-libusb --disable-uart --disable-osc --enable-usbpro --enable-usbdmx --enable-ftdidmx --disable-root-check --enable-python-libs
 RUN make
 RUN make install
 RUN ldconfig
